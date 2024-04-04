@@ -89,18 +89,93 @@ async function run() {
         //     const result = await suppliesCollection.insertOne(query);
         //     res.send(result);
         // })
-        app.get('/flash-sale', async (req, res) => { 
+        app.get('/flash-sale', async (req, res) => {
             const search = {};
             const result = await topProductsCollection.find(search).toArray();
             res.send(result);
         })
 
-        app.get('/top-products', async (req, res) => { 
+        app.get('/top-products', async (req, res) => {
             const search = {};
             const sortOptions = { rating: -1 }; // Sort by rating in descending order
             const result = await topProductsCollection.find(search).sort(sortOptions).toArray();
             res.send(result);
         });
+
+        app.delete('/top-products/:id', async (req, res) => {
+            const search = req.params.id;
+            console.log(search);
+            try {
+                const query = { _id: new ObjectId(search) };
+                const result = await topProductsCollection.deleteOne(query);
+                console.log(result);
+                res.send(result);
+            } catch (error) {
+                console.error(error);
+                res.status(500).send(error);
+            }
+        });
+
+
+        // app.post('/top-products-filter', async (req, res) => {
+        //     const { rating, category, newPrice } = req.query;
+
+        //     // Initialize search object
+        //     const search = {};
+
+        //     // Add rating filter if provided
+        //     if (rating) {
+        //         search.rating = { $gte: parseFloat(rating) }; // Filter products with rating greater than or equal to provided rating
+        //     }
+
+        //     // Add category filter if provided
+        //     if (category) {
+        //         search.category = category;
+        //     }
+
+        //     // Add new price filter if provided
+        //     if (newPrice) {
+        //         // Assuming newPrice is in the format "$10 - $20"
+        //         const [minString, maxString] = newPrice.split(' - ');
+        //         const min = parseFloat(minString.trim().replace('$', ''));
+        //         const max = parseFloat(maxString.trim().replace('$', ''));
+        //         search.price = { $gte: min, $lte: max }; // Filter products with price within the provided range
+        //     }
+
+        //     // Sort by rating in descending order by default
+        //     const sortOptions = { rating: -1 };
+
+        //     try {
+        //         const result = await topProductsCollection.find(search).sort(sortOptions).toArray();
+        //         res.send(result);
+        //     } catch (error) {
+        //         console.error("Error occurred while fetching top products:", error);
+        //         res.status(500).send("Internal server error");
+        //     }
+        // });
+
+
+        app.get('/products/:productId', async (req, res) => {
+            const productId = req.params.productId;
+
+            try {
+                const query = { _id: new ObjectId(productId) };
+                const result = await topProductsCollection.findOne(query);
+
+                if (!result) {
+                    // If product not found, send 404 Not Found status
+                    return res.status(404).json({ error: 'Product not found' });
+                }
+
+                // If product found, send it as response
+                res.json(result);
+                console.log(result)
+            } catch (error) {
+                console.error("Error retrieving product:", error);
+                res.status(500).json({ error: 'Internal Server Error' });
+            }
+        });
+
 
         // app.post('/testimonial', async (req, res) => {
         //     const query = req.body;
